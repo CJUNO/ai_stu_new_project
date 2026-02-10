@@ -61,34 +61,17 @@ const SortChart = ({ name, initialData, steps, start, onFinish, rank }) => {
     }
   }, [highlights])
 
-  // 포인트 색상 결정
-  const getPointColor = (index) => {
+  // 막대 색상 결정
+  const getBarColor = (index) => {
     const highlightType = highlights[index]
-    if (highlightType === 'compare') return '#ef4444' // 빨강 (비교)
-    if (highlightType === 'swap') return '#34d399' // 초록 (교환)
-    if (highlightType === 'pivot') return '#a855f7' // 보라 (피벗)
-    return '#22d3ee' // 기본 (시안)
+    if (highlightType === 'compare') return 'bg-rose-500' // 빨강 (비교)
+    if (highlightType === 'swap') return 'bg-emerald-400' // 초록 (교환)
+    if (highlightType === 'pivot') return 'bg-purple-500' // 보라 (피벗)
+    return 'bg-cyan-400' // 기본 (시안)
   }
 
   // 최댓값 계산 (높이 정규화용)
   const maxValue = Math.max(...initialData)
-  const minValue = Math.min(...initialData)
-
-  // SVG 좌표 계산
-  const width = 600
-  const height = 250
-  const padding = 20
-
-  const getX = (index) => {
-    return padding + (index / (data.length - 1)) * (width - 2 * padding)
-  }
-
-  const getY = (value) => {
-    return height - padding - ((value - minValue) / (maxValue - minValue)) * (height - 2 * padding)
-  }
-
-  // 라인 경로 생성
-  const linePoints = data.map((value, index) => `${getX(index)},${getY(value)}`).join(' ')
 
   return (
     <div className="relative bg-gray-800 border border-gray-700 rounded-lg p-4">
@@ -105,73 +88,18 @@ const SortChart = ({ name, initialData, steps, start, onFinish, rank }) => {
         {currentStep} / {steps.length} steps
       </div>
 
-      {/* 라인 차트 */}
-      <div className="flex justify-center">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-64"
-          style={{ maxWidth: '600px' }}
-        >
-          {/* 그리드 라인 (배경) */}
-          {[0, 1, 2, 3, 4].map((i) => (
-            <line
-              key={i}
-              x1={padding}
-              y1={padding + (i * (height - 2 * padding) / 4)}
-              x2={width - padding}
-              y2={padding + (i * (height - 2 * padding) / 4)}
-              stroke="#374151"
-              strokeWidth="1"
-              strokeDasharray="4,4"
-            />
-          ))}
-
-          {/* 메인 라인 */}
-          <polyline
-            points={linePoints}
-            fill="none"
-            stroke="#22d3ee"
-            strokeWidth="2"
-            className="transition-all duration-100"
+      {/* 막대 그래프 */}
+      <div className="flex items-end justify-center gap-1 h-64">
+        {data.map((value, index) => (
+          <div
+            key={index}
+            className={`flex-1 ${getBarColor(index)} transition-all duration-100 rounded-t`}
+            style={{
+              height: `${(value / maxValue) * 100}%`,
+              minWidth: '2px'
+            }}
           />
-
-          {/* 데이터 포인트 */}
-          {data.map((value, index) => {
-            const isHighlighted = highlights[index]
-            return (
-              <circle
-                key={index}
-                cx={getX(index)}
-                cy={getY(value)}
-                r={isHighlighted ? 6 : 4}
-                fill={getPointColor(index)}
-                className="transition-all duration-100"
-                style={{
-                  filter: isHighlighted ? 'drop-shadow(0 0 8px currentColor)' : 'none'
-                }}
-              />
-            )
-          })}
-
-          {/* 값 레이블 (하이라이트된 포인트만) */}
-          {data.map((value, index) => {
-            if (!highlights[index]) return null
-            return (
-              <text
-                key={`label-${index}`}
-                x={getX(index)}
-                y={getY(value) - 12}
-                textAnchor="middle"
-                fill={getPointColor(index)}
-                fontSize="12"
-                fontWeight="bold"
-                className="font-mono"
-              >
-                {value}
-              </text>
-            )
-          })}
-        </svg>
+        ))}
       </div>
     </div>
   )
